@@ -1,0 +1,23 @@
+:root {
+  --max-width: 1280px;
+  --bg-color: #e7e4e0;
+  --main-paddings: 0px 48px;
+  --hard-blue: rgba(25, 60, 104, 1);
+  --black-font-color: rgba(27, 28, 30, 1);
+}
+
+@media (max-width: 1024px) {
+  :root {
+    --max-width: 1024px;
+    --main-paddings: 0px 32px;
+    --page-top-margin: 120px;
+  }
+}
+
+@media (max-width: 500px) {
+  :root {
+    --max-width: 100%;
+    --main-paddings: 0px 12px;
+    --page-top-margin: 80px;
+  }
+}
