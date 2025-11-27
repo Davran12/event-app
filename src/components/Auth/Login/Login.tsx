@@ -46,7 +46,7 @@ const Login = () => {
         <button type="submit">Войти</button>
 
         <p className={styles.link} onClick={() => router.push("/register")}>
-          Нет аккаунта? Регистрация
+          Нет аккаунта? <a href="">Регистрация</a>
         </p>
       </form>
     </div>
