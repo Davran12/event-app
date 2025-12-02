@@ -1,92 +1,121 @@
 "use client"
 
 import {useState} from "react"
-import {useRouter} from "next/navigation"
 import styles from "./styles.module.scss"
+import Login from "../Login/Login"
+import Reset from "../Reset/Reset"
+import Confirm from "../Confirm/Confirm"
 
-const Register = () => {
-  const router = useRouter()
+export default function Register() {
+  const [mode, setMode] = useState<"register" | "login" | "reset" | "confirm">(
+    "register"
+  )
+  const [fade, setFade] = useState<"in" | "out">("in")
+  const [formData, setFormData] = useState<Record<string, string>>({})
+  const [errors, setErrors] = useState<Record<string, string>>({})
 
-  const [form, setForm] = useState({
-    fullName: "",
-    phone: "",
-    email: "",
-    group: "",
-  })
+  const switchMode = (newMode: typeof mode) => {
+    setFade("out")
+    setMode(newMode)
+    setFade("in")
+    setErrors({})
+  }
 
-  const [errors, setErrors] = useState<any>({})
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({...formData, [e.target.name]: e.target.value})
+    setErrors({...errors, [e.target.name]: ""})
+  }
 
-  const validate = () => {
-    const newErrors: any = {}
-
-    if (form.fullName.trim().length < 3)
-      newErrors.fullName = "Введите корректное ФИО"
-
-    if (!/^\+996\d{9}$/.test(form.phone))
-      newErrors.phone = "Введите корректный номер телефона"
-
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
-      newErrors.email = "Некорректный формат почты"
-
-    if (!form.group) newErrors.group = "Выберите группу"
-
+  const handleSubmit = () => {
+    const newErrors: Record<string, string> = {}
+    ;[
+      "ФИО",
+      "Номер телефона",
+      "Группа / Направление",
+      "Email",
+      "Пароль",
+    ].forEach((field) => {
+      const val = formData[field]?.trim()
+      if (!val) newErrors[field] = "Заполните это поле"
+      if (field === "Email" && val && !val.includes("@gmail.com"))
+        newErrors[field] = "Почта должна содержать @gmail.com"
+    })
     setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
+    if (Object.keys(newErrors).length === 0) alert("Регистрация успешна!")
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (!validate()) return
-
-    alert("Регистрация успешна!")
-    router.push("/")
-  }
+  if (mode === "login")
+    return (
+      <Login
+        formData={formData}
+        setFormData={setFormData}
+        onSwitch={switchMode}
+      />
+    )
+  if (mode === "reset")
+    return (
+      <Reset
+        formData={formData}
+        setFormData={setFormData}
+        onSwitch={switchMode}
+      />
+    )
+  if (mode === "confirm")
+    return (
+      <Confirm
+        formData={formData}
+        setFormData={setFormData}
+        onSwitch={switchMode}
+      />
+    )
 
   return (
-    <div className={styles.wrapper}>
-      <form className={styles.form} onSubmit={handleSubmit}>
+    <div className={styles.overlay}>
+      <div
+        className={`${styles.modal} ${
+          fade === "in" ? styles.fadeIn : styles.fadeOut
+        }`}
+      >
         <h2>Регистрация</h2>
-
-        <input
-          placeholder="ФИО"
-          value={form.fullName}
-          onChange={(e) => setForm({...form, fullName: e.target.value})}
-        />
-        {errors.fullName && <span>{errors.fullName}</span>}
-
-        <input
-          placeholder="+996XXXXXXXXX"
-          value={form.phone}
-          onChange={(e) => setForm({...form, phone: e.target.value})}
-        />
-        {errors.phone && <span>{errors.phone}</span>}
-
-        <input
-          type="email"
-          placeholder="Почта"
-          value={form.email}
-          onChange={(e) => setForm({...form, email: e.target.value})}
-        />
-        {errors.email && <span>{errors.email}</span>}
-
-        <input
-          placeholder="Группа"
-          value={form.group}
-          onChange={(e) => setForm({...form, group: e.target.value})}
-        />
-        {errors.group && <span>{errors.group}</span>}
-
-        <button onClick={() => router.push("/")} type="submit">
+        {[
+          "ФИО",
+          "Номер телефона",
+          "Группа / Направление",
+          "Email",
+          "Пароль",
+        ].map((field) => (
+          <div key={field} className={styles.inputWrapper}>
+            <input
+              name={field}
+              type={field === "Пароль" ? "password" : "text"}
+              placeholder={
+                field === "Email"
+                  ? "example@gmail.com"
+                  : field === "Номер телефона"
+                  ? "+996123456789"
+                  : field
+              }
+              value={formData[field] || ""}
+              onChange={handleChange}
+            />
+            {errors[field] && (
+              <span className={styles.error}>{errors[field]}</span>
+            )}
+          </div>
+        ))}
+        <button className={styles.submitBtn} onClick={handleSubmit}>
           Зарегистрироваться
         </button>
-
-        <p className={styles.link} onClick={() => router.push("/login")}>
-          Уже есть аккаунт? <a href="">Войти</a>
+        <p className={styles.switch}>
+          Есть аккаунт?{" "}
+          <span
+            className={styles.switchBtn}
+            onClick={() => switchMode("login")}
+          >
+            войти
+          </span>
         </p>
-      </form>
+      </div>
     </div>
   )
 }
-
-export default Register

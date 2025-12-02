@@ -1,56 +1,82 @@
 "use client"
 
 import {useState} from "react"
-import {useRouter} from "next/navigation"
 import styles from "./styles.module.scss"
 
-const Login = () => {
-  const router = useRouter()
+interface Props {
+  formData: Record<string, string>
+  setFormData: React.Dispatch<React.SetStateAction<Record<string, string>>>
+  onSwitch: (mode: "register" | "login" | "reset" | "confirm") => void
+}
 
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [error, setError] = useState("")
+export default function Login({formData, setFormData, onSwitch}: Props) {
+  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [fade, setFade] = useState<"in" | "out">("in")
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({...formData, [e.target.name]: e.target.value})
+    setErrors({...errors, [e.target.name]: ""})
+  }
 
-    if (!email || !password) {
-      setError("Заполните все поля")
-      return
-    }
-
-    router.push("/")
+  const handleSubmit = () => {
+    const newErrors: Record<string, string> = {}
+    ;["Email", "Пароль"].forEach((field) => {
+      const val = formData[field]?.trim()
+      if (!val) newErrors[field] = "Заполните это поле"
+      if (field === "Email" && val && !val.includes("@gmail.com"))
+        newErrors[field] = "Почта должна содержать @gmail.com"
+    })
+    setErrors(newErrors)
+    if (Object.keys(newErrors).length === 0) alert("Авторизация успешна!")
   }
 
   return (
-    <div className={styles.wrapper}>
-      <form className={styles.form} onSubmit={handleSubmit}>
-        <h2>Вход</h2>
-
-        {error && <span>{error}</span>}
-
-        <input
-          type="email"
-          placeholder="Почта"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-
-        <input
-          type="password"
-          placeholder="Пароль"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-
-        <button type="submit">Войти</button>
-
-        <p className={styles.link} onClick={() => router.push("/register")}>
-          Нет аккаунта? <a href="">Регистрация</a>
+    <div className={styles.overlay}>
+      <div
+        className={`${styles.modal} ${
+          fade === "in" ? styles.fadeIn : styles.fadeOut
+        }`}
+      >
+        <h2>Авторизация</h2>
+        <div className={styles.inputWrapper}>
+          <input
+            name="Email"
+            placeholder="example@gmail.com"
+            value={formData["Email"] || ""}
+            onChange={handleChange}
+          />
+          {errors["Email"] && (
+            <span className={styles.error}>{errors["Email"]}</span>
+          )}
+        </div>
+        <div className={styles.inputWrapper}>
+          <input
+            type="password"
+            name="Пароль"
+            placeholder="Пароль"
+            value={formData["Пароль"] || ""}
+            onChange={handleChange}
+          />
+          {errors["Пароль"] && (
+            <span className={styles.error}>{errors["Пароль"]}</span>
+          )}
+        </div>
+        <button className={styles.submitBtn} onClick={handleSubmit}>
+          Войти
+        </button>
+        <p className={styles.forgot} onClick={() => onSwitch("reset")}>
+          Забыл пароль?
         </p>
-      </form>
+        <p className={styles.switch}>
+          Нет аккаунта?{" "}
+          <span
+            className={styles.switchBtn}
+            onClick={() => onSwitch("register")}
+          >
+            зарегистрироваться
+          </span>
+        </p>
+      </div>
     </div>
   )
 }
-
-export default Login
